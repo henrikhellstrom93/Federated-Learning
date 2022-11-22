@@ -55,42 +55,53 @@ def __split_dataset(K, dataset):
     return ret
 
 #Model setup
-def setup_models(K, num_classes):
+def setup_models(K, num_classes, batch_norm, dropout):
     model_list = []
     for k in range(K):
-        model_list.append(__initialize_model(num_classes))
-    global_model = __initialize_model(num_classes)
+        model_list.append(__initialize_model(num_classes, batch_norm, dropout))
+    global_model = __initialize_model(num_classes, batch_norm, dropout)
     return model_list, global_model
 
-def __initialize_model(num_classes):
+def __initialize_model(num_classes, batch_norm, dropout):
     #The weights of the layers are initialized when they are added to the Sequential object
     model = Sequential()
 
     model.add(layers.Conv2D(32, (3,3), padding='same', activation='relu', input_shape=(32,32,3)))
-    #model.add(layers.BatchNormalization())
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
     model.add(layers.Conv2D(32, (3,3), padding='same', activation='relu'))
-    #model.add(layers.BatchNormalization())
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
     model.add(layers.MaxPooling2D(pool_size=(2,2)))
-    #model.add(layers.Dropout(0.3))
+    if dropout == True:
+        model.add(layers.Dropout(0.3))
 
     model.add(layers.Conv2D(64, (3,3), padding='same', activation='relu'))
-    #model.add(layers.BatchNormalization())
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
     model.add(layers.Conv2D(64, (3,3), padding='same', activation='relu'))
-    #model.add(layers.BatchNormalization())
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
     model.add(layers.MaxPooling2D(pool_size=(2,2)))
-    #model.add(layers.Dropout(0.5))
+    if dropout == True:
+        model.add(layers.Dropout(0.3))
 
     model.add(layers.Conv2D(128, (3,3), padding='same', activation='relu'))
-    #model.add(layers.BatchNormalization())
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
     model.add(layers.Conv2D(128, (3,3), padding='same', activation='relu'))
-    #model.add(layers.BatchNormalization())
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
     model.add(layers.MaxPooling2D(pool_size=(2,2)))
-    #model.add(layers.Dropout(0.5))
+    if dropout == True:
+        model.add(layers.Dropout(0.3))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(128, activation='relu'))
-    #model.add(layers.BatchNormalization())
-    #model.add(layers.Dropout(0.5))
+    if batch_norm == True:
+        model.add(layers.BatchNormalization())
+    if dropout == True:
+        model.add(layers.Dropout(0.3))
     model.add(layers.Dense(num_classes, activation='softmax'))    # num_classes = 10
     model.compile(optimizer='adam', loss=keras.losses.categorical_crossentropy, metrics=['accuracy'])
     return model
@@ -100,7 +111,7 @@ def local_training(model_list, datasets, ep, steps):
     for k, model in enumerate(model_list):
         train_images = datasets[k][0]
         train_labels = datasets[k][1]
-        history = model.fit(train_images, train_labels, batch_size=64, epochs=ep, steps_per_epoch=steps)
+        history = model.fit(train_images, train_labels, batch_size=64, epochs=ep, steps_per_epoch=steps, verbose=0)
     return model_list
         
 #Sets weights of global_model to the arithmetic mean of all model weights in model_list
